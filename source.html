@@ -1,0 +1,1713 @@
+<!DOCTYPE html>
+<html lang="en" class="pal-3">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MODALITY · Adaptive UI Engine</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        /* ============ THEME TOKENS ============ */
+        html.pal-1 {
+            --bg: #1E293B;
+            --surface: #334155;
+            --surface2: #243247;
+            --text: #F1F5F9;
+            --muted: #94A3B8;
+            --primary: #F59E0B;
+            --primary-text: #1E293B;
+            --accent: #FBBF24;
+            --border: #42546E;
+        }
+
+        html.pal-2 {
+            --bg: #FAF7F0;
+            --surface: #FFFDF9;
+            --surface2: #F1EDE1;
+            --text: #1B2A24;
+            --muted: #66766C;
+            --primary: #2D6A4F;
+            --primary-text: #FAF7F0;
+            --accent: #D4A373;
+            --border: #E3DCCB;
+        }
+
+        html.pal-3 {
+            --bg: #0F172A;
+            --surface: #1B2A4A;
+            --surface2: #141F38;
+            --text: #EDF1F7;
+            --muted: #8B9BB8;
+            --primary: #FF6B6B;
+            --primary-text: #0F172A;
+            --accent: #4ECDC4;
+            --border: #2A3A5C;
+        }
+
+        html.pal-4 {
+            --bg: #F8FAFC;
+            --surface: #FFFFFF;
+            --surface2: #EDF1F5;
+            --text: #0F172A;
+            --muted: #64748B;
+            --primary: #0F766E;
+            --primary-text: #F8FAFC;
+            --accent: #F97316;
+            --border: #DFE6EE;
+        }
+
+        html.pal-5 {
+            --bg: #FDF6EC;
+            --surface: #FFFDF9;
+            --surface2: #F5EBDB;
+            --text: #3D2C29;
+            --muted: #8A776B;
+            --primary: #C4634A;
+            --primary-text: #FDF6EC;
+            --accent: #8A9B6E;
+            --border: #EBDCC5;
+        }
+
+        * {
+            box-sizing: border-box;
+            transition: background-color .35s ease, border-color .35s ease, color .35s ease;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
+        }
+
+        .mono {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+        }
+
+        section {
+            scroll-margin-top: 76px;
+        }
+
+        :focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 3px;
+        }
+
+        body.mode-keyboard :focus-visible {
+            outline-width: 3px;
+        }
+
+        /* ============ TOPBAR ============ */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .topbar-in {
+            max-width: 1140px;
+            margin: 0 auto;
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            gap: 28px;
+        }
+
+        .brand {
+            font-weight: 700;
+            letter-spacing: 1px;
+            font-size: 1rem;
+        }
+
+        .brand b {
+            color: var(--primary);
+        }
+
+        .topnav {
+            display: flex;
+            gap: 22px;
+            margin-left: 12px;
+        }
+
+        .topnav a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: .78rem;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            padding: 6px 0;
+            border-bottom: 2px solid transparent;
+        }
+
+        .topnav a:hover {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .chips {
+            margin-left: auto;
+            display: flex;
+            gap: 8px;
+        }
+
+        .chip {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .62rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            padding: 5px 11px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            color: var(--muted);
+            cursor: pointer;
+            background: transparent;
+        }
+
+        .chip:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .chip.on {
+            background: var(--primary);
+            color: var(--primary-text);
+            border-color: var(--primary);
+        }
+
+        .chip.live {
+            border-color: var(--accent);
+            color: var(--accent);
+            animation: chipPulse 1.4s infinite;
+        }
+
+        @keyframes chipPulse {
+            50% {
+                opacity: .45;
+            }
+        }
+
+        /* ============ STAGE ============ */
+        .stage {
+            position: relative;
+            height: 460px;
+            border-bottom: 1px solid var(--border);
+            overflow: hidden;
+            cursor: crosshair;
+        }
+
+        #stageFx {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .stage-copy {
+            position: relative;
+            z-index: 1;
+            pointer-events: none;
+            max-width: 1140px;
+            margin: 0 auto;
+            padding: 78px 24px 0;
+        }
+
+        .stage-copy h1 {
+            font-size: clamp(2.4rem, 6vw, 4.2rem);
+            line-height: 1.02;
+            letter-spacing: -1.5px;
+            margin: 0 0 18px;
+        }
+
+        .stage-copy h1 span {
+            color: var(--primary);
+        }
+
+        .stage-copy p {
+            color: var(--muted);
+            max-width: 52ch;
+            line-height: 1.7;
+            font-size: 1rem;
+            margin: 0;
+        }
+
+        .ticker {
+            display: flex;
+            gap: 26px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .ticker span {
+            font-size: .72rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .ticker b {
+            color: var(--primary);
+            font-size: .9rem;
+        }
+
+        .stage-hint {
+            position: absolute;
+            z-index: 1;
+            pointer-events: none;
+            bottom: 16px;
+            right: 26px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .64rem;
+            letter-spacing: 1.5px;
+            color: var(--muted);
+        }
+
+        /* ============ BANDS ============ */
+        .band {
+            max-width: 1140px;
+            margin: 0 auto;
+            padding: 70px 24px 80px;
+            border-bottom: 1px solid var(--border);
+            opacity: 0;
+            transform: translateY(26px);
+        }
+
+        .band.in {
+            opacity: 1;
+            transform: none;
+            transition: opacity .7s ease, transform .7s ease;
+        }
+
+        .sec-head {
+            display: flex;
+            align-items: baseline;
+            gap: 14px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .sec-head .num {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--primary);
+            font-size: .95rem;
+        }
+
+        .sec-head h2 {
+            font-size: 1.5rem;
+            letter-spacing: 3px;
+            margin: 0;
+        }
+
+        .sec-head .right {
+            margin-left: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .72rem;
+            color: var(--muted);
+            letter-spacing: 1px;
+        }
+
+        .sec-head .right.on {
+            color: var(--accent);
+        }
+
+        /* ============ 01 KEYBOARD ============ */
+        .typed {
+            max-width: 790px;
+            margin: 0 auto 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 16px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .typed .tlab {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .6rem;
+            letter-spacing: 2px;
+            color: var(--muted);
+            flex: none;
+        }
+
+        #typedText {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .9rem;
+            color: var(--text);
+        }
+
+        .tcur {
+            width: 8px;
+            height: 17px;
+            background: var(--primary);
+            animation: blink 1s steps(2) infinite;
+            flex: none;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+
+        .kb {
+            --u: 46px;
+            --h: 46px;
+            max-width: 790px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+        }
+
+        .krow {
+            display: flex;
+            gap: 7px;
+            justify-content: center;
+        }
+
+        .key {
+            width: var(--u);
+            height: var(--h);
+            flex: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-bottom-width: 3px;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .74rem;
+            font-weight: 600;
+            color: var(--muted);
+            cursor: pointer;
+            user-select: none;
+            transition: transform .07s ease, background-color .1s, color .1s, border-color .1s;
+        }
+
+        .key:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .key:active {
+            transform: translateY(2px);
+        }
+
+        .key.w2 {
+            width: calc(var(--u)*1.55);
+        }
+
+        .key.w25 {
+            width: calc(var(--u)*1.95);
+        }
+
+        .key.sm {
+            width: calc(var(--u)*.74);
+            height: calc(var(--h)*.8);
+            font-size: .62rem;
+        }
+
+        .key.space {
+            flex: 1;
+            min-width: calc(var(--u)*5);
+            letter-spacing: 6px;
+        }
+
+        .key.active {
+            background: var(--primary);
+            color: var(--primary-text);
+            border-color: var(--primary);
+            transform: translateY(2px);
+        }
+
+        .key.capsOn {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .key.vshift {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--surface2);
+        }
+
+        .kb-stats {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            margin-top: 28px;
+            flex-wrap: wrap;
+        }
+
+        .kstat {
+            text-align: center;
+        }
+
+        .kstat b {
+            display: block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.9rem;
+            color: var(--primary);
+            line-height: 1.1;
+        }
+
+        .kstat b.dim {
+            color: var(--muted);
+        }
+
+        .kstat span {
+            font-size: .64rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .tagline {
+            text-align: center;
+            margin-top: 30px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .72rem;
+            letter-spacing: 2.5px;
+            color: var(--muted);
+        }
+
+        .tagline b {
+            color: var(--accent);
+        }
+
+        @media (max-width:680px) {
+            .kb {
+                --u: 29px;
+                --h: 32px;
+            }
+
+            .key {
+                font-size: .56rem;
+                border-radius: 5px;
+            }
+
+            .key.space {
+                letter-spacing: 2px;
+                min-width: calc(var(--u)*3);
+            }
+
+            .kb-stats {
+                gap: 30px;
+            }
+        }
+
+        /* ============ 02 VOICE ============ */
+        .env-line {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .7rem;
+            color: var(--muted);
+            line-height: 1.9;
+            margin: 0 0 24px;
+        }
+
+        .env-line .ok {
+            color: var(--accent);
+        }
+
+        .env-line .bad {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .voice-grid {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 28px;
+            align-items: start;
+        }
+
+        .mic-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .mic-btn {
+            flex: 1;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary);
+            color: var(--primary-text);
+            border: none;
+            border-radius: 12px;
+            padding: calc(17px*var(--uisc, 1)) calc(26px*var(--uisc, 1));
+            font-size: calc(.98rem*var(--uisc, 1));
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: .5px;
+            box-shadow: 0 2px 0 rgba(0, 0, 0, .18);
+            transition: transform .16s, box-shadow .2s, background-color .35s, color .35s;
+        }
+
+        .mic-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 22px rgba(0, 0, 0, .24);
+        }
+
+        .mic-btn:disabled {
+            opacity: .55;
+            cursor: wait;
+            transform: none;
+        }
+
+        .mic-btn.live {
+            background: var(--accent);
+            animation: micPulse 1.5s infinite;
+        }
+
+        @keyframes micPulse {
+            50% {
+                opacity: .75;
+            }
+        }
+
+        #langSel {
+            flex: none;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 12px;
+            padding: 0 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .75rem;
+            cursor: pointer;
+        }
+
+        .wave-wrap {
+            margin-top: 16px;
+            height: 88px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        #wave {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .v-note {
+            margin-top: 14px;
+            font-size: .78rem;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .v-note.err {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .cmds {
+            margin-top: 22px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 18px;
+        }
+
+        .cmds-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .62rem;
+            letter-spacing: 2.5px;
+            color: var(--muted);
+        }
+
+        .cmd-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 7px;
+            margin-top: 11px;
+        }
+
+        .cmd {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            background: var(--surface);
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .72rem;
+            text-align: left;
+            cursor: pointer;
+            transition: border-color .15s, color .15s, background-color .35s, transform .07s;
+        }
+
+        .cmd:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .cmd:active {
+            transform: translateY(1px);
+        }
+
+        .hin {
+            margin-top: 11px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .64rem;
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .transcript {
+            min-height: 300px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .85rem;
+            line-height: 2;
+        }
+
+        .transcript .placeholder {
+            color: var(--muted);
+        }
+
+        .transcript .tl {
+            color: var(--text);
+        }
+
+        .transcript .tl::before {
+            content: '› ';
+            color: var(--primary);
+        }
+
+        .transcript .ti {
+            color: var(--accent);
+        }
+
+        @media (max-width:900px) {
+            .voice-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .transcript {
+                min-height: 160px;
+            }
+
+            .cmd-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* ============ 03 POINTER ============ */
+        .ptr-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 28px;
+            align-items: start;
+        }
+
+        .prow {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: 13px 2px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .prow span {
+            font-size: .68rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .prow b {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            color: var(--primary);
+        }
+
+        .pad {
+            position: relative;
+            overflow: hidden;
+            height: 150px;
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            cursor: pointer;
+            user-select: none;
+            font-size: calc(.9rem*var(--uisc, 1));
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: var(--muted);
+        }
+
+        .pad:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .pad .cnt {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--primary);
+            letter-spacing: 0;
+        }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: var(--primary);
+            opacity: .35;
+            transform: scale(0);
+            animation: rip .55s ease-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes rip {
+            to {
+                transform: scale(2.6);
+                opacity: 0;
+            }
+        }
+
+        .tiles {
+            margin-top: 14px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
+            gap: 7px;
+        }
+
+        .tile {
+            height: 36px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            transition: background-color .45s, border-color .45s;
+        }
+
+        .tile.lit {
+            background: var(--primary);
+            border-color: var(--primary);
+            transition: background-color .06s, border-color .06s;
+        }
+
+        .tiles-cap {
+            margin-top: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .68rem;
+            color: var(--muted);
+            letter-spacing: 1.5px;
+        }
+
+        .tiles-cap b {
+            color: var(--accent);
+        }
+
+        @media (max-width:900px) {
+            .ptr-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ============ 04 LOG ============ */
+        .log {
+            max-width: 720px;
+        }
+
+        .lrow {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            padding: 9px 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: .8rem;
+        }
+
+        .lbadge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .58rem;
+            letter-spacing: 1.5px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            flex: none;
+            width: 64px;
+            text-align: center;
+        }
+
+        .lbadge.b-k {
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .lbadge.b-v {
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .lbadge.b-m {
+            color: var(--muted);
+        }
+
+        .lbadge.b-t {
+            color: #E8B84B;
+            border-color: #E8B84B;
+        }
+
+        .lbadge.b-s {
+            color: var(--text);
+        }
+
+        .ltime {
+            font-size: .68rem;
+            color: var(--muted);
+            flex: none;
+        }
+
+        .ltext {
+            color: var(--text);
+        }
+
+        .foot {
+            max-width: 1140px;
+            margin: 0 auto;
+            padding: 26px 24px 46px;
+            color: var(--muted);
+            font-size: .75rem;
+            line-height: 1.7;
+        }
+
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: 26px;
+            transform: translate(-50%, 18px);
+            opacity: 0;
+            background: var(--text);
+            color: var(--bg);
+            padding: 12px 22px;
+            border-radius: 10px;
+            font-size: .86rem;
+            font-weight: 600;
+            pointer-events: none;
+            transition: all .3s ease;
+            z-index: 50;
+            max-width: 90vw;
+        }
+
+        .toast.show {
+            transform: translate(-50%, 0);
+            opacity: 1;
+        }
+
+        body.mode-touch .mic-btn {
+            padding: calc(22px*var(--uisc, 1)) calc(34px*var(--uisc, 1));
+        }
+
+        body.mode-touch .pad {
+            height: 190px;
+        }
+
+        body.mode-touch .topnav a {
+            font-size: .86rem;
+        }
+
+        @media (max-width:860px) {
+            .topnav {
+                display: none;
+            }
+        }
+
+        @media (max-width:560px) {
+            .chips {
+                display: none;
+            }
+
+            .stage {
+                height: 400px;
+            }
+
+            .band {
+                padding: 52px 18px 62px;
+            }
+        }
+    </style>
+</head>
+
+<body class="mode-mouse">
+
+    <div class="toast" id="toast"></div>
+
+    <header class="topbar">
+        <div class="topbar-in">
+            <div class="brand">MODALITY<b>·engine</b></div>
+            <nav class="topnav">
+                <a href="#s-kb">01 keyboard</a>
+                <a href="#s-voice">02 voice</a>
+                <a href="#s-pointer">03 pointer</a>
+                <a href="#s-log">04 log</a>
+            </nav>
+            <div class="chips">
+                <button class="chip on" id="chip-mouse" title="switch to mouse mode">mouse</button>
+                <button class="chip" id="chip-touch" title="switch to touch mode">touch</button>
+                <button class="chip" id="chip-keyboard" title="switch to keyboard mode">keyboard</button>
+                <button class="chip" id="chip-voice" title="toggle the microphone">voice</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ================= STAGE ================= -->
+    <section class="stage" id="stage">
+        <canvas id="stageFx"></canvas>
+        <div class="stage-copy">
+            <h1>EVERY INPUT<br><span>LEAVES A TRACE.</span></h1>
+            <p>One interface, four input modalities — mouse, touch, keyboard and voice. Press any key, click anywhere on
+                this stage, or grant the mic and speak a command. The engine detects it, adapts, and remembers.</p>
+            <div class="ticker">
+                <span>events <b id="tEvents">0</b></span>
+                <span>modality <b id="tMode">mouse</b></span>
+                <span>session <b id="tTime">0:00</b></span>
+            </div>
+        </div>
+        <div class="stage-hint">click the stage — rings bloom here too</div>
+    </section>
+
+    <!-- ================= 01 KEYBOARD ================= -->
+    <section class="band" id="s-kb">
+        <div class="sec-head"><span class="num">01</span>
+            <h2>KEYBOARD</h2><span class="right" id="lastKeyTop">last key —</span>
+        </div>
+
+        <div class="typed"><span class="tlab">TYPED</span><span id="typedText"></span><span class="tcur"></span></div>
+
+        <div class="kb" id="kb">
+            <div class="krow">
+                <div class="key" data-key="`">`</div>
+                <div class="key" data-key="1">1</div>
+                <div class="key" data-key="2">2</div>
+                <div class="key" data-key="3">3</div>
+                <div class="key" data-key="4">4</div>
+                <div class="key" data-key="5">5</div>
+                <div class="key" data-key="6">6</div>
+                <div class="key" data-key="7">7</div>
+                <div class="key" data-key="8">8</div>
+                <div class="key" data-key="9">9</div>
+                <div class="key" data-key="0">0</div>
+                <div class="key" data-key="-">-</div>
+                <div class="key" data-key="=">=</div>
+                <div class="key w2" data-key="bksp">BKSP</div>
+            </div>
+            <div class="krow">
+                <div class="key w2" data-key="tab">TAB</div>
+                <div class="key" data-key="q">Q</div>
+                <div class="key" data-key="w">W</div>
+                <div class="key" data-key="e">E</div>
+                <div class="key" data-key="r">R</div>
+                <div class="key" data-key="t">T</div>
+                <div class="key" data-key="y">Y</div>
+                <div class="key" data-key="u">U</div>
+                <div class="key" data-key="i">I</div>
+                <div class="key" data-key="o">O</div>
+                <div class="key" data-key="p">P</div>
+                <div class="key" data-key="[">[</div>
+                <div class="key" data-key="]">]</div>
+                <div class="key" data-key="\">\</div>
+            </div>
+            <div class="krow">
+                <div class="key w2" data-key="caps">CAPS</div>
+                <div class="key" data-key="a">A</div>
+                <div class="key" data-key="s">S</div>
+                <div class="key" data-key="d">D</div>
+                <div class="key" data-key="f">F</div>
+                <div class="key" data-key="g">G</div>
+                <div class="key" data-key="h">H</div>
+                <div class="key" data-key="j">J</div>
+                <div class="key" data-key="k">K</div>
+                <div class="key" data-key="l">L</div>
+                <div class="key" data-key=";">;</div>
+                <div class="key" data-key="'">'</div>
+                <div class="key w2" data-key="enter">ENTER</div>
+            </div>
+            <div class="krow">
+                <div class="key w25" data-key="shift">SHIFT</div>
+                <div class="key" data-key="z">Z</div>
+                <div class="key" data-key="x">X</div>
+                <div class="key" data-key="c">C</div>
+                <div class="key" data-key="v">V</div>
+                <div class="key" data-key="b">B</div>
+                <div class="key" data-key="n">N</div>
+                <div class="key" data-key="m">M</div>
+                <div class="key" data-key=",">,</div>
+                <div class="key" data-key=".">.</div>
+                <div class="key" data-key="/">/</div>
+                <div class="key w25" data-key="shift">SHIFT</div>
+            </div>
+            <div class="krow">
+                <div class="key" data-key="esc">ESC</div>
+                <div class="key" data-key="ctrl">CTRL</div>
+                <div class="key" data-key="alt">ALT</div>
+                <div class="key space" data-key="space">SPACE</div>
+                <div class="key sm" data-key="left">&#8592;</div>
+                <div class="key sm" data-key="down">&#8595;</div>
+                <div class="key sm" data-key="up">&#8593;</div>
+                <div class="key sm" data-key="right">&#8594;</div>
+            </div>
+        </div>
+
+        <div class="kb-stats">
+            <div class="kstat"><b id="stTotal">0</b><span>total keys</span></div>
+            <div class="kstat"><b id="stKpm">0</b><span>keys / min</span></div>
+            <div class="kstat"><b id="stLast">—</b><span>last key</span></div>
+            <div class="kstat"><b class="dim" id="stCaps">off</b><span>caps lock</span></div>
+        </div>
+        <p class="tagline">every key fires a <b>glyph burst</b> on the stage — the on-screen keys are clickable too</p>
+    </section>
+
+    <!-- ================= 02 VOICE ================= -->
+    <section class="band" id="s-voice">
+        <div class="sec-head"><span class="num">02</span>
+            <h2>VOICE</h2><span class="right" id="voiceState">idle</span>
+        </div>
+
+        <div class="env-line" id="envLine">checking environment…</div>
+
+        <div class="voice-grid">
+            <div>
+                <div class="mic-row">
+                    <button class="mic-btn" id="micBtn" aria-pressed="false">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                            stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="2" width="6" height="12" rx="3" />
+                            <path d="M5 10v1a7 7 0 0 0 14 0v-1" />
+                            <path d="M12 18v4" />
+                        </svg>
+                        <span id="micLabel">Start listening</span>
+                    </button>
+                    <select id="langSel" aria-label="speech language" title="speech recognition language">
+                        <option value="en-US">en-US</option>
+                        <option value="en-GB">en-GB</option>
+                        <option value="hi-IN">hi-IN</option>
+                        <option value="es-ES">es-ES</option>
+                        <option value="fr-FR">fr-FR</option>
+                        <option value="de-DE">de-DE</option>
+                    </select>
+                </div>
+                <div class="wave-wrap"><canvas id="wave"></canvas></div>
+                <div class="v-note" id="vNote">Clicking the button asks for real microphone permission. The waveform is
+                    your live audio; commands run through the browser's speech engine. Chrome or Edge recommended.</div>
+                <div class="cmds">
+                    <div class="cmds-title">CLICK TO RUN ANY COMMAND · OR SAY IT ALOUD</div>
+                    <div class="cmd-grid">
+                        <button class="cmd" data-cmd="dark mode">"dark mode"</button>
+                        <button class="cmd" data-cmd="light mode">"light mode"</button>
+                        <button class="cmd" data-cmd="teal">"teal"</button>
+                        <button class="cmd" data-cmd="coral">"coral"</button>
+                        <button class="cmd" data-cmd="amber">"amber"</button>
+                        <button class="cmd" data-cmd="green">"green"</button>
+                        <button class="cmd" data-cmd="bigger">"bigger"</button>
+                        <button class="cmd" data-cmd="smaller">"smaller"</button>
+                        <button class="cmd" data-cmd="touch mode">"touch mode"</button>
+                        <button class="cmd" data-cmd="mouse mode">"mouse mode"</button>
+                        <button class="cmd" data-cmd="burst">"burst"</button>
+                        <button class="cmd" data-cmd="clear the stage">"clear"</button>
+                    </div>
+                    <div class="hin">हिन्दी में भी बोल सकते हैं — "हरा" "नीला" "लाल" "पीला" "बड़ा करो" "छोटा करो"
+                        "धमाका" "साफ करो"</div>
+                </div>
+            </div>
+            <div class="transcript" id="transcript"><span class="placeholder">transcript appears here once you start
+                    talking…</span></div>
+        </div>
+    </section>
+
+    <!-- ================= 03 POINTER ================= -->
+    <section class="band" id="s-pointer">
+        <div class="sec-head"><span class="num">03</span>
+            <h2>POINTER</h2><span class="right" id="ptrState">x 0 · y 0</span>
+        </div>
+
+        <div class="ptr-grid">
+            <div>
+                <div class="prow"><span>position</span><b id="pPos">— · —</b></div>
+                <div class="prow"><span>velocity</span><b id="pSpeed">0 px/s</b></div>
+                <div class="prow"><span>travel</span><b id="pDist">0 m</b></div>
+                <div class="prow"><span>clicks</span><b id="pClicks">×0</b></div>
+                <div class="prow"><span>touch mode</span><b id="pTouch">inactive</b></div>
+            </div>
+            <div>
+                <div class="pad" id="pad">CLICK PAD <span class="cnt" id="padCount">×0</span></div>
+                <div class="tiles" id="tiles"></div>
+                <div class="tiles-cap">hover the grid to light tiles — <b id="tileCount">×0</b> lit</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= 04 LOG ================= -->
+    <section class="band" id="s-log" style="border-bottom:none;">
+        <div class="sec-head"><span class="num">04</span>
+            <h2>EVENT LOG</h2><span class="right" id="logCount">0 entries</span>
+        </div>
+        <div class="log" id="log"></div>
+    </section>
+
+    <footer class="foot">
+        Single file · no frameworks · every interaction counted live. Microphone audio is processed locally by the
+        browser's own speech engine — nothing is stored or sent anywhere by this page.
+    </footer>
+
+    <script>
+        (function () {
+            'use strict';
+            const $ = id => document.getElementById(id);
+            const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+            const rnd = (a, b) => a + Math.random() * (b - a);
+
+            /* ---------- theme ---------- */
+            let C = {}, palIdx = 3, uisc = 1;
+            const PAL_NAMES = ['slate & amber', 'cream & forest', 'ink & coral', 'nordic minimal', 'terracotta & sand'];
+            function refreshColors() {
+                const cs = getComputedStyle(document.documentElement);
+                C.primary = cs.getPropertyValue('--primary').trim();
+                C.accent = cs.getPropertyValue('--accent').trim();
+                C.text = cs.getPropertyValue('--text').trim();
+                C.muted = cs.getPropertyValue('--muted').trim();
+            }
+            refreshColors();
+            function setPalette(i) {
+                palIdx = i;
+                document.documentElement.className = 'pal-' + i;
+                document.documentElement.style.removeProperty('--primary');
+                document.documentElement.style.removeProperty('--primary-text');
+                refreshColors();
+            }
+            function setPrimary(hex) {
+                document.documentElement.style.setProperty('--primary', hex);
+                document.documentElement.style.setProperty('--primary-text', '#0F172A');
+                refreshColors();
+            }
+
+            /* ---------- toast ---------- */
+            const toastEl = $('toast'); let toastT;
+            function toast(msg) {
+                toastEl.textContent = msg; toastEl.classList.add('show');
+                clearTimeout(toastT); toastT = setTimeout(() => toastEl.classList.remove('show'), 2400);
+            }
+
+            /* ---------- event log ---------- */
+            let events = 0;
+            const logEl = $('log');
+            function log(type, text) {
+                events++; $('tEvents').textContent = events;
+                const name = { k: 'KEY', m: 'MOUSE', t: 'TOUCH', v: 'VOICE', s: 'SYS' }[type];
+                const cls = { k: 'b-k', m: 'b-m', t: 'b-t', v: 'b-v', s: 'b-s' }[type];
+                const row = document.createElement('div'); row.className = 'lrow';
+                row.innerHTML = `<span class="lbadge ${cls}">${name}</span><span class="ltime mono">${new Date().toLocaleTimeString('en-GB')}</span><span class="ltext">${esc(text)}</span>`;
+                logEl.prepend(row);
+                while (logEl.children.length > 42) logEl.lastChild.remove();
+                $('logCount').textContent = events + ' entries';
+            }
+            log('s', 'modality engine online');
+
+            /* ---------- modality chips (clickable) ---------- */
+            const chips = { mouse: $('chip-mouse'), touch: $('chip-touch'), keyboard: $('chip-keyboard'), voice: $('chip-voice') };
+            let mode = 'mouse';
+            function setMode(m) {
+                if (mode === m) return;
+                mode = m;
+                document.body.className = 'mode-' + m;
+                Object.keys(chips).forEach(k => chips[k].classList.toggle('on', k === m));
+                $('tMode').textContent = m;
+                log('s', 'modality → ' + m);
+            }
+            chips.mouse.addEventListener('click', () => setMode('mouse'));
+            chips.touch.addEventListener('click', () => { setMode('touch'); $('pTouch').textContent = 'ACTIVE'; });
+            chips.keyboard.addEventListener('click', () => setMode('keyboard'));
+
+            /* ================= STAGE CANVAS ================= */
+            const stage = $('stage'), cvs = $('stageFx'), ctx = cvs.getContext('2d');
+            const waveCvs = $('wave'), wctx = waveCvs.getContext('2d');
+            let W = 0, H = 0, WW = 0, WH = 0; const dpr = Math.min(2, window.devicePixelRatio || 1);
+            function fit() {
+                W = cvs.clientWidth; H = cvs.clientHeight;
+                cvs.width = W * dpr; cvs.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                WW = waveCvs.clientWidth; WH = waveCvs.clientHeight;
+                waveCvs.width = WW * dpr; waveCvs.height = WH * dpr; wctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            }
+            window.addEventListener('resize', fit);
+            setTimeout(fit, 700); fit();
+
+            const G = [], P = [], R = [], E = [];
+            function pickColor() { const r = Math.random(); return r < .55 ? C.primary : (r < .82 ? C.accent : C.text); }
+            function spawnGlyph(text) {
+                if (!W) fit();
+                const special = text.length > 1;
+                const size = special ? rnd(14, 18) : rnd(26, 46);
+                const x = rnd(.08, .92) * W, y = H - 24;
+                G.push({ text, x, y, vx: rnd(-.7, .7), vy: -rnd(2.2, 5), rot: rnd(-.4, .4), vr: rnd(-.03, .03), life: 1, decay: rnd(.011, .02), size, col: pickColor() });
+                for (let i = 0; i < 9; i++) P.push({ x, y: y - 10, vx: rnd(-2.2, 2.2), vy: -rnd(.8, 3.4), life: 1, decay: rnd(.018, .032), size: rnd(1.5, 4), col: pickColor() });
+                if (G.length > 150) G.shift();
+                if (P.length > 400) P.splice(0, 60);
+            }
+            function spawnRing(x, y) { R.push({ x, y, r: 6, a: .85 }); }
+            function spawnEcho(text) { E.push({ text, x: W / 2, y: H / 2 - 16, a: 1 }); }
+            function glyphStorm(n) {
+                const chars = 'MODALITY0123456789+#*';
+                for (let i = 0; i < n; i++) setTimeout(() => spawnGlyph(chars[Math.floor(Math.random() * chars.length)]), i * 45);
+            }
+            function clearStage() { G.length = P.length = R.length = E.length = 0; }
+
+            stage.addEventListener('click', e => {
+                const r = cvs.getBoundingClientRect();
+                spawnRing(e.clientX - r.left, e.clientY - r.top);
+                log('m', 'stage click at ' + Math.round(e.clientX - r.left) + ', ' + Math.round(e.clientY - r.top));
+            });
+
+            /* ---------- waveform + live level ---------- */
+            let analyser = null, fdata = null, level = 0;
+            function drawWave() {
+                wctx.clearRect(0, 0, WW, WH);
+                const bars = 30, gap = 5, bw = (WW - (bars - 1) * gap) / bars;
+                if (analyser) {
+                    analyser.getByteFrequencyData(fdata);
+                    let max = 0;
+                    for (let i = 0; i < bars; i++) {
+                        const v = (fdata[i + 2] || 0) / 255;
+                        if (fdata[i + 2] > max) max = fdata[i + 2];
+                        const h = Math.max(3, v * (WH - 8));
+                        wctx.fillStyle = C.primary;
+                        wctx.fillRect(i * (bw + gap), WH - 4 - h, bw, h);
+                        if (h > 6) { wctx.fillStyle = C.accent; wctx.fillRect(i * (bw + gap), WH - 4 - h - 3, bw, 2); }
+                    }
+                    level = max;
+                } else {
+                    level = 0;
+                    wctx.fillStyle = C.muted;
+                    for (let i = 0; i < bars; i++) wctx.fillRect(i * (bw + gap), WH - 7, bw, 3);
+                }
+            }
+
+            /* ---------- main loop ---------- */
+            function frame() {
+                ctx.clearRect(0, 0, W, H);
+                for (let i = G.length - 1; i >= 0; i--) {
+                    const g = G[i];
+                    g.x += g.vx; g.y += g.vy; g.vy += .05; g.rot += g.vr; g.life -= g.decay;
+                    if (g.life <= 0 || g.y > H + 70) { G.splice(i, 1); continue; }
+                    ctx.save(); ctx.translate(g.x, g.y); ctx.rotate(g.rot);
+                    ctx.globalAlpha = Math.max(0, g.life);
+                    ctx.fillStyle = g.col;
+                    ctx.font = `700 ${g.size}px "JetBrains Mono", monospace`;
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText(g.text, 0, 0); ctx.restore();
+                }
+                for (let i = P.length - 1; i >= 0; i--) {
+                    const p = P[i];
+                    p.x += p.vx; p.y += p.vy; p.vy += .09; p.life -= p.decay;
+                    if (p.life <= 0) { P.splice(i, 1); continue; }
+                    ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.col;
+                    ctx.fillRect(p.x, p.y, p.size, p.size);
+                }
+                for (let i = R.length - 1; i >= 0; i--) {
+                    const r = R[i];
+                    r.r += 2.8; r.a -= .022;
+                    if (r.a <= 0) { R.splice(i, 1); continue; }
+                    ctx.globalAlpha = r.a; ctx.strokeStyle = C.primary; ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, 6.283); ctx.stroke();
+                }
+                for (let i = E.length - 1; i >= 0; i--) {
+                    const e2 = E[i];
+                    e2.y -= .16; e2.a -= .007;
+                    if (e2.a <= 0) { E.splice(i, 1); continue; }
+                    ctx.globalAlpha = Math.min(1, e2.a * 1.4); ctx.fillStyle = C.accent;
+                    ctx.font = '600 30px "Space Grotesk", sans-serif';
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText(e2.text, e2.x, e2.y);
+                }
+                ctx.globalAlpha = 1;
+                drawWave();
+                /* silent-mic watchdog */
+                if (analyser && listening) {
+                    if (level < 3) quietMs += 16;
+                    else { quietMs = 0; if (flatShown) { flatShown = false; vNote.classList.remove('err'); vNote.textContent = baseNote; } }
+                    if (!flatShown && quietMs > 4500) {
+                        flatShown = true; vNote.classList.add('err');
+                        vNote.textContent = 'Mic is open but silent — check the input device selected in your OS, and that you are unmuted.';
+                    }
+                }
+                requestAnimationFrame(frame);
+            }
+            requestAnimationFrame(frame);
+
+            /* ================= 01 KEYBOARD — physical + clickable ================= */
+            const kb = $('kb');
+            const keyTimes = []; let totalKeys = 0, vShift = false, vCaps = false, typedStr = '';
+            function keyId(e) {
+                const k = e.key;
+                if (k === ' ') return 'space';
+                if (k.length === 1) return k.toLowerCase();
+                return ({
+                    Shift: 'shift', Control: 'ctrl', Alt: 'alt', CapsLock: 'caps', Enter: 'enter',
+                    Backspace: 'bksp', Tab: 'tab', Escape: 'esc', ArrowLeft: 'left', ArrowUp: 'up',
+                    ArrowDown: 'down', ArrowRight: 'right'
+                })[k] || null;
+            }
+            function flashKey(id) {
+                if (!id) return null;
+                const els = kb.querySelectorAll('[data-key="' + id + '"]');
+                els.forEach(el => {
+                    el.classList.add('active');
+                    clearTimeout(el._t);
+                    el._t = setTimeout(() => el.classList.remove('active'), 200);
+                });
+                return els[0];
+            }
+            function registerKey(label, virtual) {
+                totalKeys++; keyTimes.push(performance.now());
+                $('stTotal').textContent = totalKeys;
+                const up = label.toUpperCase();
+                $('stLast').textContent = up;
+                $('lastKeyTop').textContent = 'last key ' + up;
+                spawnGlyph(label);
+                log('k', 'key ' + up + (virtual ? ' (on-screen)' : ''));
+            }
+            function typeChar(ch) { typedStr = (typedStr + ch).slice(-30); $('typedText').textContent = typedStr; }
+            function backspaceTyped() { typedStr = typedStr.slice(0, -1); $('typedText').textContent = typedStr; }
+            function syncShift() { kb.querySelectorAll('[data-key="shift"]').forEach(k => k.classList.toggle('vshift', vShift)); }
+            function syncCaps() {
+                kb.querySelectorAll('[data-key="caps"]').forEach(k => k.classList.toggle('capsOn', vCaps));
+                $('stCaps').textContent = vCaps ? 'ON' : 'off';
+                $('stCaps').classList.toggle('dim', !vCaps);
+            }
+
+            window.addEventListener('keydown', e => {
+                setMode('keyboard');
+                const id = keyId(e);
+                const el = flashKey(id);
+                const caps = e.getModifierState('CapsLock');
+                $('stCaps').textContent = caps ? 'ON' : 'off';
+                $('stCaps').classList.toggle('dim', !caps);
+                kb.querySelectorAll('[data-key="caps"]').forEach(k => k.classList.toggle('capsOn', caps));
+                if (e.repeat) return;
+                let label;
+                if (e.key === ' ') label = 'SPACE';
+                else if (e.key.length === 1) label = e.key;
+                else label = el ? el.textContent.trim() : (id || e.key).toUpperCase();
+                registerKey(label, false);
+                if (e.key === 'Backspace') backspaceTyped();
+                else if (e.key === 'Enter') typeChar(' ');
+                else if (e.key.length === 1) typeChar(e.key);
+            });
+            window.addEventListener('keyup', e => {
+                const id = keyId(e);
+                if (id) kb.querySelectorAll('[data-key="' + id + '"]').forEach(el => el.classList.remove('active'));
+            });
+
+            /* on-screen keys are fully clickable — shift and caps actually work */
+            kb.addEventListener('click', e => {
+                const key = e.target.closest('.key'); if (!key) return;
+                const id = key.dataset.key;
+                if (id === 'shift') { vShift = !vShift; syncShift(); flashKey('shift'); return; }
+                if (id === 'caps') { vCaps = !vCaps; syncCaps(); flashKey('caps'); return; }
+                let label;
+                if (id.length === 1) {
+                    const up = (vShift !== vCaps);
+                    label = up ? id.toUpperCase() : id;
+                    if (vShift) { vShift = false; syncShift(); }
+                } else {
+                    label = key.textContent.trim();
+                }
+                registerKey(label, true);
+                flashKey(id);
+                if (id === 'bksp') backspaceTyped();
+                else if (id === 'space' || id === 'enter') typeChar(' ');
+                else if (id.length === 1) typeChar(label);
+            });
+
+            const t0 = Date.now();
+            setInterval(() => {
+                const s = Math.floor((Date.now() - t0) / 1000);
+                $('tTime').textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+                const cut = performance.now() - 60000;
+                while (keyTimes.length && keyTimes[0] < cut) keyTimes.shift();
+                $('stKpm').textContent = keyTimes.length;
+            }, 1000);
+
+            /* ================= 02 VOICE ================= */
+            const micBtn = $('micBtn'), micLabel = $('micLabel'), voiceStateEl = $('voiceState'),
+                vNote = $('vNote'), transcriptEl = $('transcript'), langSel = $('langSel');
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            let stream = null, audioCtx = null, recog = null;
+            let listening = false, srActive = false, waveActive = false;
+            let restarts = 0, lastRestart = 0, quietMs = 0, flatShown = false, baseNote = '';
+            const finals = []; let lastCmd = { text: '', at: 0 };
+
+            /* ---- preflight: tell the user immediately if something will block the mic ---- */
+            (function preflight() {
+                let inFrame = false;
+                try { inFrame = (window.self !== window.top); } catch (err) { inFrame = true; }
+                const srOK = !!SR;
+                const gum = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+                const secure = window.isSecureContext;
+                const tag = ok => ok ? '<span class="ok">ready</span>' : '<span class="bad">missing</span>';
+                let html = 'preflight · speech api ' + tag(srOK) + ' · microphone api ' + tag(gum) + ' · secure context ' + tag(secure);
+                if (inFrame) html += '<br>warning: running inside an embedded frame — open this file in its own browser tab, or the mic stays blocked';
+                if (!secure) html += '<br>warning: not a secure origin — run <b>python -m http.server</b> next to this file and open <b>http://localhost:8000</b> (or any https host)';
+                if (!srOK) html += '<br>note: this browser has no speech recognition — use Chrome or Edge for voice commands; the live waveform still works';
+                $('envLine').innerHTML = html;
+            })();
+
+            function setVoiceState(txt, on) { voiceStateEl.textContent = txt; voiceStateEl.classList.toggle('on', !!on); }
+            function updateMicUI() {
+                micBtn.classList.toggle('live', listening);
+                micBtn.setAttribute('aria-pressed', listening);
+                micLabel.textContent = listening ? 'Stop listening' : 'Start listening';
+                chips.voice.classList.toggle('live', listening);
+                setVoiceState(listening ? 'listening' : 'idle', listening);
+            }
+
+            function renderTranscript(interim) {
+                let html = finals.map(f => `<div class="tl">${esc(f)}</div>`).join('');
+                if (interim) html += `<div class="ti">${esc(interim)}…</div>`;
+                transcriptEl.innerHTML = html || '<span class="placeholder">transcript appears here once you start talking…</span>';
+            }
+
+            /* ---- command engine (English + Hindi phrases) ---- */
+            function runVoiceCommand(t) {
+                if (/\b(green|mint|lime|hara)\b|हरा|हरी/.test(t)) { setPrimary('#77C66E'); return 'primary → green'; }
+                if (/\b(teal|cyan|aqua|neela)\b|नीला|नीली/.test(t)) { setPrimary('#4ECDC4'); return 'primary → teal'; }
+                if (/\b(coral|red|pink|laal)\b|लाल/.test(t)) { setPrimary('#FF6B6B'); return 'primary → coral'; }
+                if (/\b(amber|orange|yellow|gold|peela)\b|पीला|पीली/.test(t)) { setPrimary('#F59E0B'); return 'primary → amber'; }
+                if (/\b(bigger|larger|huge|bada)\b|बड़ा|बड़ी/.test(t)) { uisc = Math.min(1.9, uisc * 1.25); document.documentElement.style.setProperty('--uisc', uisc); return 'targets ×' + uisc.toFixed(2); }
+                if (/\b(smaller|tiny|shrink|chhota)\b|छोटा|छोटी/.test(t)) { uisc = Math.max(.6, uisc * .8); document.documentElement.style.setProperty('--uisc', uisc); return 'targets ×' + uisc.toFixed(2); }
+                if (/\btouch\b|टच/.test(t)) { setMode('touch'); $('pTouch').textContent = 'ACTIVE'; return 'modality → touch'; }
+                if (/\b(mouse|pointer)\b|माउस/.test(t)) { setMode('mouse'); $('pTouch').textContent = 'inactive'; return 'modality → mouse'; }
+                if (/\b(dark|andhera)\b|अंधेरा|काला/.test(t)) { const i = (palIdx === 3) ? 1 : 3; setPalette(i); return 'theme → ' + PAL_NAMES[i - 1]; }
+                if (/\b(light|bright|roshni|ujala)\b|रोशनी|उजाला/.test(t)) { const i = (palIdx === 4) ? 5 : 4; setPalette(i); return 'theme → ' + PAL_NAMES[i - 1]; }
+                if (/\b(burst|party|celebrate|confetti|dhamaka)\b|धमाका|पटाखा/.test(t)) { glyphStorm(26); return 'glyph storm'; }
+                if (/\b(clear|clean|saaf)\b|साफ|मिटा/.test(t)) { clearStage(); return 'stage cleared'; }
+                return null;
+            }
+            function executeCommand(text, source) {
+                const key = text.trim().toLowerCase();
+                if (source === 'voice' && lastCmd.text === key && Date.now() - lastCmd.at < 2500) return;
+                lastCmd = { text: key, at: Date.now() };
+                const res = runVoiceCommand(key);
+                if (res) {
+                    spawnEcho(res);
+                    toast((source === 'voice' ? 'voice → ' : 'test → ') + res);
+                    log('v', (source === 'voice' ? 'command' : 'clicked command') + ' "' + text.trim() + '" → ' + res);
+                } else {
+                    log('v', 'heard: "' + text.trim() + '"');
+                }
+            }
+            document.querySelectorAll('.cmd').forEach(b =>
+                b.addEventListener('click', () => executeCommand(b.dataset.cmd, 'click')));
+
+            function handleFinal(text) {
+                const clean = text.trim(); if (!clean) return;
+                finals.push(clean); if (finals.length > 6) finals.shift();
+                renderTranscript('');
+                executeCommand(clean, 'voice');
+            }
+
+            function setupRecog() {
+                recog = new SR();
+                recog.continuous = true;
+                recog.interimResults = true;
+                recog.lang = langSel.value;
+                recog.maxAlternatives = 1;
+                recog.onresult = e => {
+                    let interim = '';
+                    for (let i = e.resultIndex; i < e.results.length; i++) {
+                        const r = e.results[i];
+                        if (r.isFinal) handleFinal(r[0].transcript);
+                        else interim += r[0].transcript;
+                    }
+                    if (interim) renderTranscript(interim);
+                };
+                recog.onerror = e => {
+                    const err = e.error;
+                    if (err === 'not-allowed' || err === 'service-not-allowed') {
+                        vNote.classList.add('err');
+                        vNote.innerHTML = 'Speech was blocked. Click the lock / tune icon in the address bar → Microphone → Allow, then press the mic button again.';
+                        stopVoice(); toast('speech blocked — see note'); log('s', 'speech permission denied');
+                    } else if (err === 'network') {
+                        vNote.classList.add('err');
+                        vNote.innerHTML = 'Speech service unreachable. This almost always means the page is not on a trusted origin — run <b>python -m http.server</b> in this file\'s folder and open <b>http://localhost:8000</b>, then reload and press the mic.';
+                        stopVoice(); toast('speech service unreachable'); log('s', 'speech network error — serve via localhost');
+                    } else if (err !== 'no-speech' && err !== 'aborted') {
+                        log('s', 'speech error: ' + err);
+                    }
+                };
+                recog.onend = () => {
+                    if (!listening || !recog) return;
+                    const now = Date.now();
+                    if (now - lastRestart < 1500) restarts++; else restarts = 0;
+                    lastRestart = now;
+                    if (restarts > 5) { setVoiceState('stalled', false); vNote.textContent = 'Speech engine stalled — press the mic button once to restart it.'; return; }
+                    setTimeout(() => { if (listening && recog) { try { recog.start(); } catch (err) { } } }, 250);
+                };
+            }
+
+            async function startVoice() {
+                vNote.classList.remove('err');
+                baseNote = 'Requesting microphone access — accept the browser prompt…';
+                vNote.textContent = baseNote;
+                setVoiceState('starting', true);
+                micBtn.disabled = true;
+
+                /* 1 — live waveform from your real mic (independent) */
+                waveActive = false;
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    if (audioCtx.state === 'suspended') await audioCtx.resume();
+                    const src = audioCtx.createMediaStreamSource(stream);
+                    analyser = audioCtx.createAnalyser();
+                    analyser.fftSize = 64;
+                    fdata = new Uint8Array(analyser.frequencyBinCount);
+                    src.connect(analyser);
+                    waveActive = true;
+                } catch (err) { /* speech still gets its own chance below */ }
+
+                /* 2 — speech recognition (independent; triggers its own permission prompt) */
+                srActive = false;
+                if (SR) {
+                    setupRecog();
+                    try { recog.start(); srActive = true; } catch (err) { }
+                }
+                micBtn.disabled = false;
+
+                if (!waveActive && !srActive) {
+                    listening = false; updateMicUI(); setVoiceState('blocked', false);
+                    vNote.classList.add('err');
+                    vNote.innerHTML = 'Microphone unavailable — three things to check:<br>1 · If you denied the prompt, click the lock icon in the address bar → Microphone → Allow, then press the mic again.<br>2 · Open this file in its own browser tab (not inside an embedded preview), or the mic stays blocked.<br>3 · Serve it from localhost / https — e.g. run <b>python -m http.server</b> next to the file and open <b>http://localhost:8000</b>.<br>Meanwhile every command in the list below is clickable, so nothing is untestable.';
+                    toast('microphone unavailable');
+                    log('s', 'mic unavailable — see voice panel notes');
+                    return;
+                }
+
+                listening = true;
+                setMode('voice');
+                updateMicUI();
+                quietMs = 0; flatShown = false;
+                if (waveActive && srActive) baseNote = 'Listening — say a command from the list, then pause briefly. Commands run on final phrases; the waveform above is your live voice.';
+                else if (srActive) baseNote = 'Speech is listening (the waveform could not start — the mic may be in use by another app). Say a command, then pause.';
+                else baseNote = 'Your mic is live — the waveform is your real signal. But this browser has no Speech API, so voice commands need Chrome or Edge. Click any command in the list to test it.';
+                vNote.textContent = baseNote;
+                log('s', 'microphone ' + (waveActive ? 'granted' : 'partial') + ' — listening');
+            }
+
+            function stopVoice() {
+                listening = false; srActive = false; waveActive = false;
+                if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+                if (audioCtx) { try { audioCtx.close(); } catch (err) { } audioCtx = null; }
+                analyser = null;
+                if (recog) { const r = recog; recog = null; r.onend = null; try { r.stop(); } catch (err) { } }
+                updateMicUI();
+                log('s', 'microphone released');
+            }
+
+            micBtn.addEventListener('click', () => listening ? stopVoice() : startVoice());
+            chips.voice.addEventListener('click', () => listening ? stopVoice() : startVoice());
+            langSel.addEventListener('change', () => {
+                if (recog) {
+                    recog.lang = langSel.value;
+                    if (listening) { try { recog.stop(); } catch (err) { } }  /* onend restarts it in the new language */
+                }
+                toast('speech language → ' + langSel.value);
+            });
+
+            /* ================= 03 POINTER ================= */
+            let px = 0, py = 0, dist = 0, speed = 0, lastMove = 0, lastPtrLog = 0;
+            window.addEventListener('mousemove', e => {
+                if (e.movementX || e.movementY) setMode('mouse');
+                const now = performance.now();
+                if (now - lastMove < 30) return;
+                if (px || py) {
+                    const d = Math.hypot(e.clientX - px, e.clientY - py);
+                    const dt = Math.max(1, now - lastMove);
+                    dist += d;
+                    speed = speed * .75 + (d / dt * 1000) * .25;
+                }
+                px = e.clientX; py = e.clientY; lastMove = now;
+                $('ptrState').textContent = 'x ' + e.clientX + ' · y ' + e.clientY;
+                $('pPos').textContent = e.clientX + ' · ' + e.clientY;
+                $('pSpeed').textContent = Math.round(speed) + ' px/s';
+                $('pDist').textContent = (dist / 3779.5).toFixed(1) + ' m';
+                if (now - lastPtrLog > 2500) { log('m', 'pointer at ' + e.clientX + ', ' + e.clientY); lastPtrLog = now; }
+            });
+
+            window.addEventListener('touchstart', () => {
+                setMode('touch');
+                $('pTouch').textContent = 'ACTIVE';
+                log('t', 'touch detected — targets enlarged');
+            }, { passive: true });
+
+            let clicks = 0;
+            const pad = $('pad');
+            pad.addEventListener('click', e => {
+                clicks++;
+                $('padCount').textContent = '×' + clicks;
+                $('pClicks').textContent = '×' + clicks;
+                const r = pad.getBoundingClientRect();
+                const s = Math.max(r.width, r.height);
+                const rip = document.createElement('span');
+                rip.className = 'ripple';
+                rip.style.width = rip.style.height = s + 'px';
+                rip.style.left = (e.clientX - r.left - s / 2) + 'px';
+                rip.style.top = (e.clientY - r.top - s / 2) + 'px';
+                pad.appendChild(rip);
+                setTimeout(() => rip.remove(), 600);
+                log('m', 'pad click ×' + clicks);
+            });
+
+            const tilesEl = $('tiles'); let tilesLit = 0;
+            for (let i = 0; i < 42; i++) {
+                const t = document.createElement('div');
+                t.className = 'tile';
+                const light = () => {
+                    t.classList.add('lit'); tilesLit++;
+                    $('tileCount').textContent = '×' + tilesLit;
+                    setTimeout(() => t.classList.remove('lit'), 650);
+                };
+                t.addEventListener('mouseenter', light);
+                t.addEventListener('touchstart', light, { passive: true });
+                tilesEl.appendChild(t);
+            }
+
+            /* ---------- scroll reveal ---------- */
+            const io = new IntersectionObserver(entries => {
+                entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
+            }, { threshold: .12 });
+            document.querySelectorAll('.band').forEach(b => io.observe(b));
+        })();
+    </script>
+</body>
+
+</html>
