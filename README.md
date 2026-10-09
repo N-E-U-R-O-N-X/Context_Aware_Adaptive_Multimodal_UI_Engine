@@ -34,7 +34,7 @@ The system monitors low-level input signals and immediately transitions state to
 | Channel | Input Mechanism | System Adaptation & Feedback |
 | :--- | :--- | :--- |
 | **Keyboard** | Physical keyboard or interactive on-screen keys | Virtual key flashing, typing buffer, real-time KPM counter, and Canvas glyph launches. |
-| **Voice** | Web Speech API (`en-US`, `en-GB`, `hi-IN`, `es-ES`, `fr-FR`, `de-DE`) | Real-time Web Audio FFT visualizer, interim transcript streaming, and command execution. |
+| **Voice** | Web Speech API (`en-US`, `en-GB`, `ur-PK`, `es-ES`, `fr-FR`, `de-DE`) | Real-time Web Audio FFT visualizer, interim transcript streaming, and command execution. |
 | **Pointer** | Mouse movement and stage clicks | Dynamic velocity calculation, travel distance measurement, ripple feedback pad, and hover tile grid. |
 | **Touch** | Touchscreen taps and gestures | Enlarged button padding, expanded click pad dimensions, and UI scaling factor (`--uisc`). |
 
@@ -42,11 +42,11 @@ The system monitors low-level input signals and immediately transitions state to
 
 ## Supported Voice Commands
 
-The speech parsing pipeline processes natural spoken commands in **English** and **Hindi**:
-- **Theme & Color Shift:** `"dark mode"`, `"light mode"`, `"teal"`, `"coral"`, `"amber"`, `"green"` (*"हरा"*, *"नीला"*, *"लाल"*, *"पीला"*)
-- **Target Resizing (Fitts's Law Scaling):** `"bigger"`, `"smaller"` (*"बड़ा करो"*, *"छोटा करो"*)
+The speech parsing pipeline processes natural spoken commands in **English** and **Urdu**:
+- **Theme & Color Shift:** `"dark mode"`, `"light mode"`, `"teal"`, `"coral"`, `"amber"`, `"green"` (*"سبز / ہرا"*, *"نیلا"*, *"سرخ / لال"*, *"پیلا"*)
+- **Target Resizing (Fitts's Law Scaling):** `"bigger"`, `"smaller"` (*"بڑا کرو"*, *"چھوٹا کرو"*)
 - **Modality Hand-Off:** `"touch mode"`, `"mouse mode"`
-- **Canvas Control:** `"burst"`, `"clear the stage"` (*"धमाका"*, *"साफ करो"*)
+- **Canvas Control:** `"burst"`, `"clear the stage"` (*"دھماکہ"*, *"صاف کرو"*)
 
 ---
 
